@@ -39,6 +39,7 @@ idf_component_register(
         "tools_sensors.c"
         "sensors/sensor_registry.c"
         "sensors/sensor_bme280.c"
+        "sensors/sensor_gy49.c"
         "heartbeat.c"
         "tools_heartbeat.c"
         "cloud_log.c"

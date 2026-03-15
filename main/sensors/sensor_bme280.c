@@ -13,9 +13,12 @@
 #include "sensor_bme280.h"
 #include "driver/i2c.h"
 #include "esp_err.h"
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <string.h>
+
+static const char *TAG = "BME280";
 
 // ---------------------------------------------------------------------------
 // Register map
@@ -54,7 +57,8 @@ typedef struct {
 } bme280_calib_t;
 
 static bme280_calib_t s_calib;
-static bool           s_driver_ok = false;
+static bool           s_driver_ok   = false;
+static bool           s_has_humidity = true;  // false for BMP280
 
 // ---------------------------------------------------------------------------
 // Low-level I2C helpers
@@ -228,10 +232,18 @@ bool bme280_init(void)
 
     if (!i2c_ensure_installed()) return false;
 
-    // Verify chip ID
+    // Verify chip ID: 0x60=BME280, 0x56/0x57/0x58=BMP280 (no humidity)
     uint8_t chip_id = 0;
     if (i2c_read_regs(REG_CHIP_ID, &chip_id, 1) != ESP_OK) return false;
-    if (chip_id != BME280_CHIP_ID) return false;
+    bool is_bme280 = (chip_id == 0x60);
+    bool is_bmp280 = (chip_id == 0x56 || chip_id == 0x57 || chip_id == 0x58);
+    if (!is_bme280 && !is_bmp280) {
+        ESP_LOGE(TAG, "chip ID mismatch: expected 0x60/0x58, got 0x%02X", chip_id);
+        return false;
+    }
+    s_has_humidity = is_bme280;
+    ESP_LOGI(TAG, "%s detected (chip_id=0x%02X)",
+             is_bme280 ? "BME280" : "BMP280", chip_id);
 
     // Soft reset
     if (i2c_write_reg(REG_RESET, 0xB6) != ESP_OK) return false;
@@ -290,12 +302,17 @@ bool bme280_read(sensor_data_t *out)
 
     float temp     = compensate_temperature(adc_T); // must be first (sets t_fine)
     float pressure = compensate_pressure(adc_P);
-    float humidity = compensate_humidity(adc_H);
 
     out->values[0] = temp;      out->labels[0] = "temp_c";
-    out->values[1] = humidity;  out->labels[1] = "humidity_pct";
-    out->values[2] = pressure;  out->labels[2] = "pressure_hpa";
-    out->count = 3;
+    out->values[1] = pressure;  out->labels[1] = "pressure_hpa";
+    out->count = 2;
+
+    if (s_has_humidity) {
+        float humidity = compensate_humidity(adc_H);
+        out->values[2] = humidity; out->labels[2] = "humidity_pct";
+        out->count = 3;
+    }
+
     out->valid = true;
     return true;
 }

@@ -36,7 +36,10 @@ typedef struct {
 #define SENSOR_TABLE \
     SENSOR_ENTRY("bme280", \
                  "Temperature / Humidity / Pressure (I2C 0x76)", \
-                 bme280_init, bme280_read)
+                 bme280_init, bme280_read) \
+    SENSOR_ENTRY("gy49", \
+                 "Ambient Light / Lux (I2C 0x4A)", \
+                 gy49_init, gy49_read)
 
 // Forward-declare every driver's init and read functions.
 #define SENSOR_ENTRY(name, desc, init_fn, read_fn) \

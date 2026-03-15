@@ -231,11 +231,14 @@ static void heartbeat_run_cycle(void)
 
             channel_msg_t msg;
             memset(&msg, 0, sizeof(msg));
+            char s[16], f[24], o[3], m[128];
+            strncpy(s, rules[i].sensor,  sizeof(s) - 1); s[sizeof(s)-1] = '\0';
+            strncpy(f, rules[i].field,   sizeof(f) - 1); f[sizeof(f)-1] = '\0';
+            strncpy(o, rules[i].op,      sizeof(o) - 1); o[sizeof(o)-1] = '\0';
+            strncpy(m, rules[i].message, sizeof(m) - 1); m[sizeof(m)-1] = '\0';
             snprintf(msg.text, sizeof(msg.text),
-                     "[Heartbeat Alert] %s.%s=%.2f %s %.2f: %s",
-                     rules[i].sensor, rules[i].field, (double)value,
-                     rules[i].op, (double)rules[i].threshold,
-                     rules[i].message);
+                     "[Alert] %s.%s=%.2f %s %.2f: %s",
+                     s, f, (double)value, o, (double)rules[i].threshold, m);
             msg.source  = MSG_SOURCE_CRON;
             msg.chat_id = 0;
 
