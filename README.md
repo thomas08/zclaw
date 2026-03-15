@@ -23,6 +23,123 @@ It includes `zclaw` logic plus ESP-IDF/FreeRTOS runtime, Wi-Fi/networking, TLS/c
 Fun to use, fun to hack on.
 <br clear="right" />
 
+## What's New in IoT Agents
+
+### Sensor Abstraction Layer
+
+Multi-sensor support via an X-macro registry pattern — adding a new sensor takes one driver file (~100 lines) and one registry entry.
+
+| Sensor | Interface | Address | Measurements |
+|--------|-----------|---------|--------------|
+| BME280 | I2C | 0x76 | Temperature, Humidity, Pressure |
+| MPU-6050 | I2C | 0x68 | Accelerometer, Gyroscope _(stub)_ |
+
+**Telegram commands:**
+```
+"list sensors"              → show all registered sensors and status
+"read sensor bme280"        → temp=28.5°C, humidity=72%, pressure=1013hPa
+```
+
+### BME280 Wiring (ESP32-S3)
+
+```
+BME280        ESP32-S3
+-------       --------
+VCC    →      3.3V
+GND    →      GND
+SDA    →      GPIO 8
+SCL    →      GPIO 9
+SDO    →      GND  (sets I2C address to 0x76)
+```
+
+### Heartbeat — Autonomous Threshold Alerts
+
+A FreeRTOS background task reads all sensors every N minutes and fires Telegram alerts automatically — no LLM call needed unless a threshold is crossed.
+
+**Set up rules via Telegram:**
+```
+"แจ้งฉันถ้าอุณหภูมิเกิน 35°C"
+→ AI calls heartbeat_add_rule: "bme280.temp_c > 35 : ห้องร้อนเกิน 35°C"
+
+"แจ้งถ้าความชื้นต่ำกว่า 40%"
+→ AI calls heartbeat_add_rule: "bme280.humidity_pct < 40 : ความชื้นต่ำ"
+
+"ตรวจสอบทุก 10 นาที"
+→ AI calls heartbeat_set_interval: {"minutes": 10}
+
+"ดู rules ทั้งหมด"
+→ heartbeat_list_rules
+
+"ลบ rule 0"
+→ heartbeat_delete_rule: {"index": 0}
+```
+
+Rule format: `sensor.field op value : alert message`
+Operators: `>`, `<`, `>=`, `<=`, `==`
+Each rule fires **once** when the condition becomes true, then resets when it clears.
+
+### Cloud Logging (Optional)
+
+HTTP POST sensor data to any endpoint on every heartbeat cycle. Works without cloud — heartbeat alerts function independently.
+
+**Enable via Telegram:**
+```
+"ตั้ง cloud endpoint เป็น https://example.com/sensor"
+→ AI calls cloud_set_endpoint
+
+"push sensor data ไป cloud เดี๋ยวนี้"
+→ AI calls cloud_push_now
+
+"ปิด cloud logging"
+→ AI calls cloud_clear_endpoint
+```
+
+**Or enable at provision time:**
+```bash
+./scripts/provision.sh ... \
+  --cloud-url https://example.com/sensor \
+  --cloud-key "mytoken"   # optional Bearer token
+```
+
+**JSON payload:**
+```json
+{"sensor":"bme280","ts":1720000000,"temp_c":28.5,"humidity_pct":72.1,"pressure_hpa":1013.2}
+```
+
+Failed POSTs are queued in a ring buffer (8 entries) and retried on the next heartbeat cycle.
+
+### LM Studio (Local LLM)
+
+Model is **auto-detected** at boot via `GET /v1/models` — no need to pin a model name. Just set the API URL:
+
+```bash
+./scripts/provision.sh \
+  --backend openai \
+  --api-key lm-studio \
+  --api-url http://192.168.1.40:1234/v1/chat/completions \
+  --skip-api-check
+```
+
+Switch models in LM Studio → restart ESP32 → new model is picked up automatically.
+
+### Adding a New Sensor
+
+Three steps, ~100 lines total:
+
+```c
+// 1. Write driver: main/sensors/sensor_xxx.c
+bool xxx_init(void) { /* init I2C device */ }
+bool xxx_read(sensor_data_t *out) { /* read + fill out */ }
+
+// 2. Register — one line in main/sensors/sensor_registry.h
+SENSOR_ENTRY("xxx", "Description", xxx_init, xxx_read)
+
+// 3. Test via Telegram
+"read sensor xxx"
+```
+
+---
+
 ## Full Documentation
 
 Use the docs site for complete guides and reference.
@@ -71,10 +188,17 @@ Non-interactive install:
 
 ## Highlights
 
+**IoT Agents additions:**
+- BME280 sensor (temperature, humidity, pressure) via I2C
+- Autonomous heartbeat loop — threshold alerts sent to Telegram without polling
+- Cloud logging via HTTP POST with ring-buffer retry
+- LM Studio auto-detect model at boot (no model pin required)
+- Extensible sensor registry — add a new sensor in ~100 lines
+
+**zclaw base:**
 - Chat via Telegram or hosted web relay
 - Timezone-aware schedules (`daily`, `periodic`, and one-shot `once`)
 - Built-in + user-defined tools
-- For brand-new built-in capabilities, add a firmware tool (C handler + registry entry) via the Build Your Own Tool docs.
 - Runtime diagnostics via `get_diagnostics` (quick/runtime/memory/rates/time/all scopes)
 - GPIO read/write control with guardrails (including bulk `gpio_read_all`)
 - Persistent memory across reboots
@@ -83,11 +207,25 @@ Non-interactive install:
 
 ## Hardware
 
-Tested targets: **ESP32**, **ESP32-C3**, **ESP32-S3**, and **ESP32-C6**.
-Classic **ESP32-WROOM/ESP32 DevKit** boards are supported.
-Test reports for other ESP32 variants are very welcome!
+Primary target: **ESP32-S3 DevKit** — tested with sensor layer and heartbeat task.
+Also supported: **ESP32-C3**, **ESP32**, **ESP32-C6**.
 
 Recommended starter board: [Seeed XIAO ESP32-C3](https://www.seeedstudio.com/Seeed-XIAO-ESP32C3-p-5431.html)
+
+Build for ESP32-S3 (primary):
+```bash
+. ~/esp/esp-idf/export.sh
+idf.py set-target esp32s3
+idf.py build
+idf.py -p /dev/ttyACM0 flash
+```
+
+Build for ESP32-C3:
+```bash
+idf.py set-target esp32c3
+idf.py build
+idf.py -p /dev/ttyACM0 flash
+```
 
 ## Local Dev & Hacking
 
