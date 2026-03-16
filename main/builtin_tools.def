@@ -25,8 +25,8 @@ TOOL_ENTRY("delay",
            "{\"type\":\"object\",\"properties\":{\"milliseconds\":{\"type\":\"integer\",\"description\":\"Time to wait in ms (max 60000)\"}},\"required\":[\"milliseconds\"]}",
            tools_delay_handler)
 TOOL_ENTRY("i2c_scan",
-           "Scan I2C bus for connected I2C devices. Use only for hardware discovery, not for reading sensors. Pin values are managed by firmware — pass any values for sda_pin/scl_pin.",
-           "{\"type\":\"object\",\"properties\":{\"sda_pin\":{\"type\":\"integer\",\"description\":\"SDA pin (firmware uses board default)\"},\"scl_pin\":{\"type\":\"integer\",\"description\":\"SCL pin (firmware uses board default)\"},\"frequency_hz\":{\"type\":\"integer\",\"description\":\"I2C bus speed in Hz (optional, default 100000)\"}},\"required\":[\"sda_pin\",\"scl_pin\"]}",
+           "Scan I2C bus for connected I2C devices. Use for hardware discovery. Pass the board default SDA and SCL pin numbers.",
+           "{\"type\":\"object\",\"properties\":{\"sda_pin\":{\"type\":\"integer\",\"description\":\"SDA pin number\"},\"scl_pin\":{\"type\":\"integer\",\"description\":\"SCL pin number\"},\"frequency_hz\":{\"type\":\"integer\",\"description\":\"I2C bus speed in Hz (optional, default 100000)\"}},\"required\":[\"sda_pin\",\"scl_pin\"]}",
            tools_i2c_scan_handler)
 
 // Sensors

@@ -101,15 +101,18 @@ const char *agent_build_system_prompt(agent_persona_t persona, char *buf, size_t
     build_gpio_policy_summary(gpio_policy, sizeof(gpio_policy));
     sensor_list_all(sensor_status, sizeof(sensor_status));
 
+    // Replace newlines with semicolons so sensor_status is safe to embed in a single-line prompt.
+    for (char *p = sensor_status; *p; p++) {
+        if (*p == '\n') *p = ';';
+    }
+
     written = snprintf(
         buf,
         buf_len,
         "%s "
         "HARDWARE CONFIG: Board=%s, I2C default: SDA=%d SCL=%d. "
-        "The firmware enforces these pins automatically — never invent pin errors. "
-        "Registered sensors: %s"
+        "Registered sensors: %s. "
         "%s "
-        "When users ask about pin count or safe pins, answer using this configured device policy. "
         "Persona mode is '%s'. Persona affects wording only. %s "
         "Keep responses short unless the user explicitly asks for more detail.",
         SYSTEM_PROMPT,
