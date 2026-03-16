@@ -40,15 +40,15 @@ bool tools_i2c_scan_handler(const cJSON *input, char *result, size_t result_len)
     cJSON *scl_pin_json = cJSON_GetObjectItem(input, "scl_pin");
     cJSON *freq_json = cJSON_GetObjectItem(input, "frequency_hz");
 
-    // Fall back to board defaults if model omits pins or uses wrong values
-    int sda_pin = (sda_pin_json && cJSON_IsNumber(sda_pin_json))
-                  ? (int)sda_pin_json->valuedouble
-                  : DEFAULT_I2C_SDA_PIN;
-    int scl_pin = (scl_pin_json && cJSON_IsNumber(scl_pin_json))
-                  ? (int)scl_pin_json->valuedouble
-                  : DEFAULT_I2C_SCL_PIN;
-
-    // (sda_pin and scl_pin already resolved above with board defaults)
+    // Always use board-configured default pins.
+    // Accept model-provided pins only when the user explicitly mentioned them
+    // in their message — but since the firmware cannot distinguish that,
+    // we enforce board defaults to prevent models from guessing wrong pins.
+    // To use custom pins, provision --i2c-sda / --i2c-scl (future feature).
+    int sda_pin = DEFAULT_I2C_SDA_PIN;
+    int scl_pin = DEFAULT_I2C_SCL_PIN;
+    (void)sda_pin_json;
+    (void)scl_pin_json;
     int frequency_hz = I2C_SCAN_DEFAULT_FREQ_HZ;
 
     if (freq_json) {
