@@ -137,7 +137,8 @@ bool tools_i2c_scan_handler(const cJSON *input, char *result, size_t result_len)
         snprintf(
             result,
             result_len,
-            "No I2C devices found on SDA=%d SCL=%d @ %d Hz",
+            "[Board: %s] No I2C devices found on SDA=%d SCL=%d @ %d Hz",
+            CONFIG_IDF_TARGET,
             sda_pin,
             scl_pin,
             frequency_hz
@@ -149,7 +150,8 @@ bool tools_i2c_scan_handler(const cJSON *input, char *result, size_t result_len)
     int written = snprintf(
         result,
         result_len,
-        "Found %d I2C device(s) on SDA=%d SCL=%d @ %d Hz: ",
+        "[Board: %s] Found %d I2C device(s) on SDA=%d SCL=%d @ %d Hz: ",
+        CONFIG_IDF_TARGET,
         found_count,
         sda_pin,
         scl_pin,

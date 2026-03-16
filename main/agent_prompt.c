@@ -105,9 +105,8 @@ const char *agent_build_system_prompt(agent_persona_t persona, char *buf, size_t
         buf,
         buf_len,
         "%s "
-        "HARDWARE CONFIG (use exactly these values, do not substitute): "
-        "Device target: %s. "
-        "I2C pins: SDA=%d SCL=%d — always use sda_pin=%d scl_pin=%d when calling i2c_scan. "
+        "HARDWARE CONFIG: Board=%s, I2C default: SDA=%d SCL=%d. "
+        "The firmware enforces these pins automatically — never invent pin errors. "
         "Registered sensors: %s"
         "%s "
         "When users ask about pin count or safe pins, answer using this configured device policy. "
@@ -115,7 +114,6 @@ const char *agent_build_system_prompt(agent_persona_t persona, char *buf, size_t
         "Keep responses short unless the user explicitly asks for more detail.",
         SYSTEM_PROMPT,
         device_target_name(),
-        DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN,
         DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN,
         sensor_status,
         gpio_policy,

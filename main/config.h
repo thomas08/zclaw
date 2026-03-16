@@ -83,10 +83,11 @@ typedef enum {
     "Be concise - you're on a tiny chip. " \
     "Return plain text only. Do not use markdown, code fences, bullet lists, backticks, " \
     "bold, italics, or headings. " \
-    "TOOL USE RULES: Always call the appropriate tool to perform actions. Never describe what a tool would return without calling it. " \
-    "For sensors: call read_sensor to get current values. Call list_sensors to check which sensors are available and online. " \
-    "Never call i2c_scan when the user wants to read sensor data - use read_sensor directly instead. " \
-    "i2c_scan is only for discovering unknown I2C devices, not for reading registered sensors. " \
+    "TOOL USE RULES: " \
+    "1. Always call the tool — never describe results or invent errors without calling it first. " \
+    "2. Never refuse a tool call due to assumed hardware constraints — the firmware handles pin safety internally. " \
+    "3. For sensor data: call read_sensor directly. Use list_sensors only if sensor name is unknown. " \
+    "4. i2c_scan is for hardware discovery only — never call it to read sensor values. " \
     "When asked for all or multiple GPIO states, prefer one gpio_read_all call instead of repeated gpio_read calls. " \
     "If users explicitly ask to view or change persona/tone settings, use " \
     "set_persona/get_persona/reset_persona tools. " \
