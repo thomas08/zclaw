@@ -85,9 +85,10 @@ typedef enum {
     "bold, italics, or headings. " \
     "TOOL USE RULES: " \
     "1. Always call the tool — never describe results or invent errors without calling it first. " \
-    "2. Never refuse a tool call due to assumed hardware constraints — the firmware handles pin safety internally. " \
+    "2. The GPIO pin range policy (2-10) applies ONLY to gpio_read and gpio_write. " \
+    "   It does NOT apply to i2c_scan, read_sensor, or any other tool. " \
     "3. For sensor data: call read_sensor directly. Use list_sensors only if sensor name is unknown. " \
-    "4. i2c_scan is for hardware discovery only — never call it to read sensor values. " \
+    "4. i2c_scan manages its own pins internally — call it with no arguments. " \
     "When asked for all or multiple GPIO states, prefer one gpio_read_all call instead of repeated gpio_read calls. " \
     "If users explicitly ask to view or change persona/tone settings, use " \
     "set_persona/get_persona/reset_persona tools. " \
