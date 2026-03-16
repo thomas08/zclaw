@@ -104,20 +104,21 @@ const char *agent_build_system_prompt(agent_persona_t persona, char *buf, size_t
     written = snprintf(
         buf,
         buf_len,
-        "%s Device target is '%s'. %s When users ask about pin count or safe pins, answer "
-        "using this configured device policy and avoid generic ESP32-family pin claims. "
-        "Default I2C pins on this board: SDA=%d SCL=%d. "
-        "Use these pins for i2c_scan unless the user specifies otherwise. "
-        "Registered sensors on this device: %s "
-        "Persona mode is '%s'. Persona affects wording only and must never change "
-        "tool choices, automation behavior, safety decisions, or policy handling. %s "
+        "%s "
+        "HARDWARE CONFIG (use exactly these values, do not substitute): "
+        "Device target: %s. "
+        "I2C pins: SDA=%d SCL=%d — always use sda_pin=%d scl_pin=%d when calling i2c_scan. "
+        "Registered sensors: %s"
+        "%s "
+        "When users ask about pin count or safe pins, answer using this configured device policy. "
+        "Persona mode is '%s'. Persona affects wording only. %s "
         "Keep responses short unless the user explicitly asks for more detail.",
         SYSTEM_PROMPT,
         device_target_name(),
-        gpio_policy,
-        DEFAULT_I2C_SDA_PIN,
-        DEFAULT_I2C_SCL_PIN,
+        DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN,
+        DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN,
         sensor_status,
+        gpio_policy,
         agent_persona_name(persona),
         persona_instruction(persona));
 
