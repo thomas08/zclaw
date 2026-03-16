@@ -97,6 +97,36 @@ typedef enum {
     "you'll receive an action to execute - carry it out using your built-in tools."
 
 // -----------------------------------------------------------------------------
+// Board-specific I2C default pins
+// Used by sensor drivers and injected into system prompt so the LLM knows
+// which pins to use without guessing.
+// Override in sdkconfig (Kconfig) or pass -DDEFAULT_I2C_SDA_PIN=x to cmake.
+// -----------------------------------------------------------------------------
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
+#  ifndef DEFAULT_I2C_SDA_PIN
+#    define DEFAULT_I2C_SDA_PIN  5
+#  endif
+#  ifndef DEFAULT_I2C_SCL_PIN
+#    define DEFAULT_I2C_SCL_PIN  6
+#  endif
+#elif defined(CONFIG_IDF_TARGET_ESP32C3)
+#  ifndef DEFAULT_I2C_SDA_PIN
+#    define DEFAULT_I2C_SDA_PIN  8
+#  endif
+#  ifndef DEFAULT_I2C_SCL_PIN
+#    define DEFAULT_I2C_SCL_PIN  9
+#  endif
+#else
+// ESP32 classic and others
+#  ifndef DEFAULT_I2C_SDA_PIN
+#    define DEFAULT_I2C_SDA_PIN  21
+#  endif
+#  ifndef DEFAULT_I2C_SCL_PIN
+#    define DEFAULT_I2C_SCL_PIN  22
+#  endif
+#endif
+
+// -----------------------------------------------------------------------------
 // GPIO tool safety range (configurable via Kconfig)
 // -----------------------------------------------------------------------------
 #ifdef CONFIG_ZCLAW_GPIO_MIN_PIN

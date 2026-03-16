@@ -1,16 +1,17 @@
 #pragma once
 #include "sensor_registry.h"
+#include "../config.h"
 
 // ---------------------------------------------------------------------------
 // BME280 hardware configuration
-// Override these in sdkconfig or a board header if your wiring differs.
-// Defaults: ESP32-S3 (SDA=5, SCL=6, addr=0x76) — adjust to match your wiring.
+// Defaults come from config.h board-specific I2C pins (DEFAULT_I2C_SDA/SCL_PIN).
+// Override here or in sdkconfig if your wiring differs.
 // ---------------------------------------------------------------------------
 #ifndef BME280_SDA_PIN
-#  define BME280_SDA_PIN  5
+#  define BME280_SDA_PIN  DEFAULT_I2C_SDA_PIN
 #endif
 #ifndef BME280_SCL_PIN
-#  define BME280_SCL_PIN  6
+#  define BME280_SCL_PIN  DEFAULT_I2C_SCL_PIN
 #endif
 #ifndef BME280_I2C_ADDR
 #  define BME280_I2C_ADDR 0x76
