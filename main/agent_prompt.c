@@ -1,6 +1,7 @@
 #include "agent_prompt.h"
 #include "config.h"
 #include "esp_log.h"
+#include "sensors/sensor_registry.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -90,6 +91,7 @@ bool agent_parse_persona_name(const char *name, agent_persona_t *out)
 const char *agent_build_system_prompt(agent_persona_t persona, char *buf, size_t buf_len)
 {
     char gpio_policy[192] = {0};
+    char sensor_status[128] = {0};
     int written;
 
     if (!buf || buf_len == 0) {
@@ -97,17 +99,21 @@ const char *agent_build_system_prompt(agent_persona_t persona, char *buf, size_t
     }
 
     build_gpio_policy_summary(gpio_policy, sizeof(gpio_policy));
+    sensor_list_all(sensor_status, sizeof(sensor_status));
+
     written = snprintf(
         buf,
         buf_len,
         "%s Device target is '%s'. %s When users ask about pin count or safe pins, answer "
         "using this configured device policy and avoid generic ESP32-family pin claims. "
+        "Registered sensors on this device: %s "
         "Persona mode is '%s'. Persona affects wording only and must never change "
         "tool choices, automation behavior, safety decisions, or policy handling. %s "
         "Keep responses short unless the user explicitly asks for more detail.",
         SYSTEM_PROMPT,
         device_target_name(),
         gpio_policy,
+        sensor_status,
         agent_persona_name(persona),
         persona_instruction(persona));
 

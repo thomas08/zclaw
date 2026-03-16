@@ -25,17 +25,17 @@ TOOL_ENTRY("delay",
            "{\"type\":\"object\",\"properties\":{\"milliseconds\":{\"type\":\"integer\",\"description\":\"Time to wait in ms (max 60000)\"}},\"required\":[\"milliseconds\"]}",
            tools_delay_handler)
 TOOL_ENTRY("i2c_scan",
-           "Scan I2C bus for responding 7-bit addresses on selected SDA/SCL pins.",
+           "Scan I2C bus for unknown devices. Use only for hardware discovery. Do NOT use this to read sensors — use read_sensor instead.",
            "{\"type\":\"object\",\"properties\":{\"sda_pin\":{\"type\":\"integer\",\"description\":\"GPIO pin for SDA (subject to GPIO Tool Safety policy)\"},\"scl_pin\":{\"type\":\"integer\",\"description\":\"GPIO pin for SCL (subject to GPIO Tool Safety policy)\"},\"frequency_hz\":{\"type\":\"integer\",\"description\":\"I2C bus speed in Hz (optional, default 100000)\"}},\"required\":[\"sda_pin\",\"scl_pin\"]}",
            tools_i2c_scan_handler)
 
 // Sensors
 TOOL_ENTRY("read_sensor",
-           "Read data from a named sensor (e.g. bme280). Returns values such as temp_c, humidity_pct, pressure_hpa.",
+           "Read live data from a registered sensor by name. Call this directly when the user asks for sensor readings. Use list_sensors first if unsure which sensors are available.",
            "{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\",\"description\":\"Sensor name, e.g. bme280\"}},\"required\":[\"name\"]}",
            tools_read_sensor_handler)
 TOOL_ENTRY("list_sensors",
-           "List all registered sensors and their current status (ok / offline).",
+           "List all registered sensors with current status (ok / offline). Call this when sensor names are unknown or when read_sensor fails.",
            "{\"type\":\"object\",\"properties\":{}}",
            tools_list_sensors_handler)
 

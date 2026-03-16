@@ -16,13 +16,24 @@ bool tools_read_sensor_handler(const cJSON *input, char *result, size_t result_l
     }
     const char *name = name_json->valuestring;
 
+    // Check if sensor is registered at all before attempting read
+    char sensor_list[256] = {0};
+    sensor_list_all(sensor_list, sizeof(sensor_list));
+    bool registered = (strstr(sensor_list, name) != NULL);
+
     sensor_data_t data = {0};
     bool ok = sensor_read_by_name(name, &data);
 
     if (!ok || !data.valid) {
-        snprintf(result, result_len,
-                 "Error: sensor '%s' not found or failed to read. "
-                 "Use list_sensors to see available sensors.", name);
+        if (!registered) {
+            snprintf(result, result_len,
+                     "Sensor '%s' is not registered. Available sensors: %s",
+                     name, sensor_list);
+        } else {
+            snprintf(result, result_len,
+                     "Sensor '%s' is registered but offline (hardware not responding). "
+                     "Check wiring or call i2c_scan to verify device presence.", name);
+        }
         return false;
     }
 
