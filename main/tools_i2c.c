@@ -40,17 +40,15 @@ bool tools_i2c_scan_handler(const cJSON *input, char *result, size_t result_len)
     cJSON *scl_pin_json = cJSON_GetObjectItem(input, "scl_pin");
     cJSON *freq_json = cJSON_GetObjectItem(input, "frequency_hz");
 
-    if (!sda_pin_json || !cJSON_IsNumber(sda_pin_json)) {
-        snprintf(result, result_len, "Error: 'sda_pin' required (number)");
-        return false;
-    }
-    if (!scl_pin_json || !cJSON_IsNumber(scl_pin_json)) {
-        snprintf(result, result_len, "Error: 'scl_pin' required (number)");
-        return false;
-    }
+    // Fall back to board defaults if model omits pins or uses wrong values
+    int sda_pin = (sda_pin_json && cJSON_IsNumber(sda_pin_json))
+                  ? (int)sda_pin_json->valuedouble
+                  : DEFAULT_I2C_SDA_PIN;
+    int scl_pin = (scl_pin_json && cJSON_IsNumber(scl_pin_json))
+                  ? (int)scl_pin_json->valuedouble
+                  : DEFAULT_I2C_SCL_PIN;
 
-    int sda_pin = sda_pin_json->valueint;
-    int scl_pin = scl_pin_json->valueint;
+    // (sda_pin and scl_pin already resolved above with board defaults)
     int frequency_hz = I2C_SCAN_DEFAULT_FREQ_HZ;
 
     if (freq_json) {
